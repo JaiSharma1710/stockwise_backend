@@ -8,7 +8,7 @@ class Cors {
 
   corsOptions = {
     origin: function (origin, callback) {
-      if ( ["http://localhost:3000"].includes(origin) || !origin) {
+      if ( ["http://localhost:3000",'https://stockwise-frontend-ten.vercel.app'].includes(origin) || !origin) {
         callback(null, true);
       } else {
         callback(new Error("Not allowed by CORS"));
