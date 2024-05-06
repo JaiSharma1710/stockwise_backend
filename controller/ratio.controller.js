@@ -9,7 +9,7 @@ async function calculateRatios(req, res) {
     }
 
     const data = await getCompanyRatios(symbol);
-    res.status(200).json({ status: "success", data });
+    res.status(200).json({ status: "success", data: data });
   } catch (error) {
     res.status(500).json({
       status: "failed",

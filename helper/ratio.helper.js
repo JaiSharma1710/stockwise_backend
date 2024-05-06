@@ -60,15 +60,15 @@ async function getCompanyRatios(symbol) {
   const eps = incomeStatementData["Basic EPS"];
 
   return {
-    'Production Efficiency': productEffeciency,
-    'Operation Efficiency': oprationEffeciency,
-    'Total Efficiency': totalEffeciency,
-    'Profitability Ratio': profitabilityRatio,
-    'Fixed Asset Turnover Ratio': fixedAssetTurnoverRatio,
-    'Inventory Turnover Ratio': inventoryTurnOverRatio,
-    'Total Asset Turnover Ratio': totalAssetTurnoverRatio,
-    'Return on Asset': returnOnAsset,
-    'EPS': eps,
+    "Production Efficiency": productEffeciency,
+    "Operation Efficiency": oprationEffeciency,
+    "Total Efficiency": totalEffeciency,
+    "Profitability Ratio": profitabilityRatio,
+    "Fixed Asset Turnover Ratio": fixedAssetTurnoverRatio,
+    "Inventory Turnover Ratio": inventoryTurnOverRatio,
+    "Total Asset Turnover Ratio": totalAssetTurnoverRatio,
+    "Return on Asset": returnOnAsset,
+    EPS: eps,
   };
 }
 
@@ -78,7 +78,7 @@ function calculateProductEffeciency(operatingIncome, totalRevenue) {
   const result = {};
 
   keys.forEach((year) => {
-    if (!operatingIncome[year] || !totalRevenue[year]) {
+    if (!operatingIncome?.[year] || !totalRevenue?.[year]) {
       result[year] = 0;
     } else {
       result[year] = Number(
@@ -96,7 +96,7 @@ function calculateOprationEffeciency(pretaxIncome, operatingIncome) {
   const result = {};
 
   keys.forEach((year) => {
-    if (!pretaxIncome[year] || !operatingIncome[year]) {
+    if (!pretaxIncome?.[year] || !operatingIncome?.[year]) {
       result[year] = 0;
     } else {
       result[year] = Number(
@@ -114,7 +114,7 @@ function calculateTotalEffeciency(productEffeciency, oprationEffeciency) {
   const result = {};
 
   keys.forEach((year) => {
-    if (!productEffeciency[year] || !oprationEffeciency[year]) {
+    if (!productEffeciency?.[year] || !oprationEffeciency?.[year]) {
       result[year] = 0;
     } else {
       result[year] = Number(
@@ -132,7 +132,7 @@ function calculateProfitabilityRatio(netIncome, totalRevenue) {
   const result = {};
 
   keys.forEach((year) => {
-    if (!netIncome[year] || !totalRevenue[year]) {
+    if (!netIncome?.[year] || !totalRevenue?.[year]) {
       result[year] = 0;
     } else {
       result[year] = Number((netIncome[year] / totalRevenue[year]).toFixed(3));
@@ -148,7 +148,7 @@ function calculateFixedAssetTurnoverRatio(totalRevenue, fixedAssets) {
   const result = {};
 
   keys.forEach((year) => {
-    if (!totalRevenue[year] || !fixedAssets[year]) {
+    if (!totalRevenue?.[year] || !fixedAssets?.[year]) {
       result[year] = 0;
     } else {
       result[year] = Number(
@@ -166,7 +166,7 @@ function calculateInventoryTurnOverRatio(totalRevenue, inventory) {
   const result = {};
 
   keys.forEach((year) => {
-    if (!totalRevenue[year] || !inventory[year]) {
+    if (!totalRevenue?.[year] || !inventory?.[year]) {
       result[year] = 0;
     } else {
       result[year] = Number((totalRevenue[year] / inventory[year]).toFixed(3));
@@ -182,7 +182,7 @@ function calculateTotalAssetTurnoverRatio(totalRevenue, totalAssets) {
   const result = {};
 
   keys.forEach((year) => {
-    if (!totalRevenue[year] || !totalAssets[year]) {
+    if (!totalRevenue?.[year] || !totalAssets?.[year]) {
       result[year] = 0;
     } else {
       result[year] = Number(
@@ -200,7 +200,7 @@ function calculateReturnOnAsset(netIncome, totalAssets) {
   const result = {};
 
   keys.forEach((year) => {
-    if (!netIncome[year] || !totalAssets[year]) {
+    if (!netIncome?.[year] || !totalAssets?.[year]) {
       result[year] = 0;
     } else {
       result[year] = Number((netIncome[year] / totalAssets[year]).toFixed(3));
