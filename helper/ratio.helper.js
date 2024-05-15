@@ -160,6 +160,46 @@ async function getCompanyYears(symbol) {
   return [];
 }
 
+async function getDupointData(symbol) {
+  const [incomeStatementData, balanceSheetDate] = await Promise.all([
+    incomStatement.findOne({ symbol }),
+    balanceSheet.findOne({ symbol }),
+  ]);
+
+  const taxEffect = getTaxEffect(
+    incomeStatementData['Net Income'],
+    incomeStatementData['Pretax Income']
+  );
+
+  const interestEffect = getInterestEffect(
+    incomeStatementData['Pretax Income'],
+    incomeStatementData['Operating Income']
+  );
+
+  const profitabilityEffect = getProfitabilityEffect(
+    incomeStatementData['Operating Income'],
+    incomeStatementData['Total Revenue']
+  );
+
+  const assetEffect = getAssetEffect(
+    incomeStatementData['Total Revenue'],
+    balanceSheetDate['Net PPE']
+  );
+
+  const leverageEffect = getLeverageEffect(
+    balanceSheetDate['Net PPE'],
+    balanceSheetDate['Stockholders Equity']
+  );
+
+  return {
+    'Tax Effect': taxEffect,
+    'Intrest Income': interestEffect,
+    'Profitability Effect': profitabilityEffect,
+    'Asset Effect': assetEffect,
+    'Leverage Effect': leverageEffect,
+  };
+}
+
 function calculateProductEffeciency(operatingIncome, totalRevenue) {
   const keys = Object.keys(operatingIncome);
 
@@ -367,6 +407,86 @@ function calculateReturnOnEquity(
   return result;
 }
 
+function getTaxEffect(pat, pbt) {
+  const keys = Object.keys(pat);
+
+  const result = {};
+
+  keys.forEach((year) => {
+    if (!pat?.[year] || !pbt?.[year]) {
+      result[year] = 0;
+    } else {
+      result[year] = Number((pat[year] / pbt[year]).toFixed(3));
+    }
+  });
+
+  return result;
+}
+
+function getInterestEffect(pbt, ebit) {
+  const keys = Object.keys(pbt);
+
+  const result = {};
+
+  keys.forEach((year) => {
+    if (!pbt?.[year] || !ebit?.[year]) {
+      result[year] = 0;
+    } else {
+      result[year] = Number((pbt[year] / ebit[year]).toFixed(3));
+    }
+  });
+
+  return result;
+}
+
+function getProfitabilityEffect(ebit, netSales) {
+  const keys = Object.keys(ebit);
+
+  const result = {};
+
+  keys.forEach((year) => {
+    if (!ebit?.[year] || !netSales?.[year]) {
+      result[year] = 0;
+    } else {
+      result[year] = Number((ebit[year] / netSales[year]).toFixed(3));
+    }
+  });
+
+  return result;
+}
+
+function getAssetEffect(netSales, totalAssets) {
+  const keys = Object.keys(netSales);
+
+  const result = {};
+
+  keys.forEach((year) => {
+    if (!netSales?.[year] || !totalAssets?.[year]) {
+      result[year] = 0;
+    } else {
+      result[year] = Number((netSales[year] / totalAssets[year]).toFixed(3));
+    }
+  });
+
+  return result;
+}
+
+function getLeverageEffect(totalAssets, netWorth) {
+  const keys = Object.keys(totalAssets);
+
+  const result = {};
+
+  keys.forEach((year) => {
+    if (!totalAssets?.[year] || !netWorth?.[year]) {
+      result[year] = 0;
+    } else {
+      result[year] = Number((totalAssets[year] / netWorth[year]).toFixed(3));
+    }
+  });
+
+  return result;
+}
+
 function addCagr(ratio) {
   const keys = Object.keys(ratio);
   const years = keys.sort((a, b) => a - b);
@@ -399,4 +519,5 @@ module.exports = {
   getCompanyRatios,
   addGrowth,
   getSectorRatios,
+  getDupointData,
 };

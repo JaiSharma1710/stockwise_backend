@@ -2,6 +2,7 @@ const {
   getCompanyRatios,
   getSectorRatios,
   addGrowth,
+  getDupointData,
 } = require('../helper/ratio.helper');
 
 async function calculateRatios(req, res) {
@@ -16,13 +17,16 @@ async function calculateRatios(req, res) {
 
     // const sectorData = await getSectorRatios(symbol);
 
-    const Growth = addGrowth(companyData);
+    const growth = addGrowth(companyData);
+
+    const dupointData = await getDupointData(symbol);
 
     res.status(200).json({
       status: 'success',
       data: {
         companyData,
-        Growth,
+        growth,
+        dupointData,
       },
     });
   } catch (error) {
