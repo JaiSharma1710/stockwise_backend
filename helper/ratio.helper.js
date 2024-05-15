@@ -193,7 +193,7 @@ async function getDupointData(symbol) {
 
   return {
     'Tax Effect': taxEffect,
-    'Intrest Income': interestEffect,
+    'Interest Income': interestEffect,
     'Profitability Effect': profitabilityEffect,
     'Asset Effect': assetEffect,
     'Leverage Effect': leverageEffect,

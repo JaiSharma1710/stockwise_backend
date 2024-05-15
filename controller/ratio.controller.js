@@ -27,6 +27,7 @@ async function calculateRatios(req, res) {
         companyData,
         growth,
         dupointData,
+        // sectorData,
       },
     });
   } catch (error) {
