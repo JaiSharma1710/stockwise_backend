@@ -1,18 +1,18 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 const schemaCommon = new mongoose.Schema({}, { strict: false });
 
 const incomStatement = mongoose.model(
-  'incomeStatement_data',
+  "incomeStatement_data",
   schemaCommon,
-  'incomeStatement_data'
+  "incomeStatement_data"
 );
 const balanceSheet = mongoose.model(
-  'balanceSheet_data',
+  "balanceSheet_data",
   schemaCommon,
-  'balanceSheet_data'
+  "balanceSheet_data"
 );
 
-const basicInfo = mongoose.model('basic_information');
+const basicInfo = mongoose.model("basic_information");
 
 async function getCompanyRatios(symbol) {
   const [incomeStatementData, balanceSheetDate] = await Promise.all([
@@ -21,13 +21,13 @@ async function getCompanyRatios(symbol) {
   ]);
 
   const productEffeciency = calculateProductEffeciency(
-    incomeStatementData['Operating Income'],
-    incomeStatementData['Total Revenue']
+    incomeStatementData["Operating Income"],
+    incomeStatementData["Total Revenue"]
   );
 
   const oprationEffeciency = calculateOprationEffeciency(
-    incomeStatementData['Pretax Income'],
-    incomeStatementData['Operating Income']
+    incomeStatementData["Pretax Income"],
+    incomeStatementData["Operating Income"]
   );
 
   const totalEffeciency = calculateTotalEffeciency(
@@ -36,56 +36,56 @@ async function getCompanyRatios(symbol) {
   );
 
   const profitabilityRatio = calculateProfitabilityRatio(
-    incomeStatementData['Net Income'],
-    incomeStatementData['Total Revenue']
+    incomeStatementData["Net Income"],
+    incomeStatementData["Total Revenue"]
   );
 
   const fixedAssetTurnoverRatio = calculateFixedAssetTurnoverRatio(
-    incomeStatementData['Total Revenue'],
-    balanceSheetDate['Net PPE']
+    incomeStatementData["Total Revenue"],
+    balanceSheetDate["Net PPE"]
   );
 
   const inventoryTurnOverRatio = calculateInventoryTurnOverRatio(
-    incomeStatementData['Total Revenue'],
-    balanceSheetDate['Inventory']
+    incomeStatementData["Total Revenue"],
+    balanceSheetDate["Inventory"]
   );
 
   const totalAssetTurnoverRatio = calculateTotalAssetTurnoverRatio(
-    incomeStatementData['Total Revenue'],
-    balanceSheetDate['Total Assets']
+    incomeStatementData["Total Revenue"],
+    balanceSheetDate["Total Assets"]
   );
 
   const returnOnAsset = calculateReturnOnAsset(
-    incomeStatementData['Net Income'],
-    balanceSheetDate['Total Assets']
+    incomeStatementData["Net Income"],
+    balanceSheetDate["Total Assets"]
   );
 
-  const eps = incomeStatementData['Basic EPS'];
+  const eps = incomeStatementData["Basic EPS"];
   addCagr(eps);
-  eps.Weightage = '10%';
+  eps.Weightage = "10%";
 
   const leverage = calculateLeverage(
-    balanceSheetDate['Total Assets'],
-    balanceSheetDate['Stockholders Equity']
+    balanceSheetDate["Total Assets"],
+    balanceSheetDate["Stockholders Equity"]
   );
 
   const returnOnEquity = calculateReturnOnEquity(
-    incomeStatementData['Net Income Common Stockholders'],
-    balanceSheetDate['Stockholders Equity']
+    incomeStatementData["Net Income Common Stockholders"],
+    balanceSheetDate["Stockholders Equity"]
   );
 
   return {
-    'Production Efficiency': productEffeciency,
-    'Operation Efficiency': oprationEffeciency,
-    'Total Efficiency': totalEffeciency,
-    'Profitability Ratio': profitabilityRatio,
-    'Fixed Asset Turnover Ratio': fixedAssetTurnoverRatio,
-    'Inventory Turnover Ratio': inventoryTurnOverRatio,
-    'Total Asset Turnover Ratio': totalAssetTurnoverRatio,
-    'Return on Asset': returnOnAsset,
+    "Production Efficiency": productEffeciency,
+    "Operation Efficiency": oprationEffeciency,
+    "Total Efficiency": totalEffeciency,
+    "Profitability Ratio": profitabilityRatio,
+    "Fixed Asset Turnover Ratio": fixedAssetTurnoverRatio,
+    "Inventory Turnover Ratio": inventoryTurnOverRatio,
+    "Total Asset Turnover Ratio": totalAssetTurnoverRatio,
+    "Return on Asset": returnOnAsset,
     EPS: eps,
     Leverage: leverage,
-    'Return On Equity (ROE)': returnOnEquity,
+    "Return On Equity (ROE)": returnOnEquity,
   };
 }
 
@@ -96,7 +96,7 @@ async function getSectorRatios(symbol) {
   );
 
   if (!companiesSector.sector) {
-    throw new Error('no sector for selected company');
+    throw new Error("no sector for selected company");
   }
 
   const companiesInSector = await basicInfo.find(companiesSector, {
@@ -105,7 +105,7 @@ async function getSectorRatios(symbol) {
   });
 
   if (!companiesInSector.length) {
-    throw new Error('no companies in selected sector');
+    throw new Error("no companies in selected sector");
   }
 
   const allDataPromise = companiesInSector.map((company) =>
@@ -117,18 +117,18 @@ async function getSectorRatios(symbol) {
   const years = await getCompanyYears(symbol);
 
   if (!years.length) {
-    throw new Error('no data for selected company');
+    throw new Error("no data for selected company");
   }
 
   const ratioData = {
-    'Production Efficiency': {},
-    'Operation Efficiency': {},
-    'Total Efficiency': {},
-    'Profitability Ratio': {},
-    'Fixed Asset Turnover Ratio': {},
-    'Inventory Turnover Ratio': {},
-    'Total Asset Turnover Ratio': {},
-    'Return on Asset': {},
+    "Production Efficiency": {},
+    "Operation Efficiency": {},
+    "Total Efficiency": {},
+    "Profitability Ratio": {},
+    "Fixed Asset Turnover Ratio": {},
+    "Inventory Turnover Ratio": {},
+    "Total Asset Turnover Ratio": {},
+    "Return on Asset": {},
     EPS: {},
   };
 
@@ -152,10 +152,10 @@ async function getSectorRatios(symbol) {
 async function getCompanyYears(symbol) {
   const data = await balanceSheet.findOne(
     { symbol },
-    { 'Ordinary Shares Number': 1, _id: 0 }
+    { "Ordinary Shares Number": 1, _id: 0 }
   );
-  if (data && data?.['Ordinary Shares Number']) {
-    return Object.keys(data['Ordinary Shares Number']);
+  if (data && data?.["Ordinary Shares Number"]) {
+    return Object.keys(data["Ordinary Shares Number"]);
   }
   return [];
 }
@@ -167,36 +167,36 @@ async function getDupointData(symbol) {
   ]);
 
   const taxEffect = getTaxEffect(
-    incomeStatementData['Net Income'],
-    incomeStatementData['Pretax Income']
+    incomeStatementData["Net Income"],
+    incomeStatementData["Pretax Income"]
   );
 
   const interestEffect = getInterestEffect(
-    incomeStatementData['Pretax Income'],
-    incomeStatementData['Operating Income']
+    incomeStatementData["Pretax Income"],
+    incomeStatementData["Operating Income"]
   );
 
   const profitabilityEffect = getProfitabilityEffect(
-    incomeStatementData['Operating Income'],
-    incomeStatementData['Total Revenue']
+    incomeStatementData["Operating Income"],
+    incomeStatementData["Total Revenue"]
   );
 
   const assetEffect = getAssetEffect(
-    incomeStatementData['Total Revenue'],
-    balanceSheetDate['Net PPE']
+    incomeStatementData["Total Revenue"],
+    balanceSheetDate["Net PPE"]
   );
 
   const leverageEffect = getLeverageEffect(
-    balanceSheetDate['Net PPE'],
-    balanceSheetDate['Stockholders Equity']
+    balanceSheetDate["Net PPE"],
+    balanceSheetDate["Stockholders Equity"]
   );
 
   return {
-    'Tax Effect': taxEffect,
-    'Interest Income': interestEffect,
-    'Profitability Effect': profitabilityEffect,
-    'Asset Effect': assetEffect,
-    'Leverage Effect': leverageEffect,
+    "Tax Effect": taxEffect,
+    "Interest Income": interestEffect,
+    "Profitability Effect": profitabilityEffect,
+    "Asset Effect": assetEffect,
+    "Leverage Effect": leverageEffect,
   };
 }
 
@@ -216,7 +216,7 @@ function calculateProductEffeciency(operatingIncome, totalRevenue) {
   });
 
   addCagr(result);
-  result.Weightage = '5%';
+  result.Weightage = "5%";
 
   return result;
 }
@@ -237,7 +237,7 @@ function calculateOprationEffeciency(pretaxIncome, operatingIncome) {
   });
 
   addCagr(result);
-  result.Weightage = '5%';
+  result.Weightage = "5%";
 
   return result;
 }
@@ -257,8 +257,12 @@ function calculateTotalEffeciency(productEffeciency, oprationEffeciency) {
     }
   });
 
-  addCagr(result);
-  result.Weightage = '5%';
+  const Ratio = Object.assign({}, result);
+  delete Ratio.CAGR;
+  delete Ratio.Weightage;
+
+  addCagr(Ratio, "total", result);
+  result.Weightage = "5%";
 
   return result;
 }
@@ -277,7 +281,7 @@ function calculateProfitabilityRatio(netIncome, totalRevenue) {
   });
 
   addCagr(result);
-  result.Weightage = '10%';
+  result.Weightage = "10%";
 
   return result;
 }
@@ -298,7 +302,7 @@ function calculateFixedAssetTurnoverRatio(totalRevenue, fixedAssets) {
   });
 
   addCagr(result);
-  result.Weightage = '5%';
+  result.Weightage = "5%";
 
   return result;
 }
@@ -317,7 +321,7 @@ function calculateInventoryTurnOverRatio(totalRevenue, inventory) {
   });
 
   addCagr(result);
-  result.Weightage = '5%';
+  result.Weightage = "5%";
 
   return result;
 }
@@ -338,7 +342,7 @@ function calculateTotalAssetTurnoverRatio(totalRevenue, totalAssets) {
   });
 
   addCagr(result);
-  result.Weightage = '10%';
+  result.Weightage = "10%";
 
   return result;
 }
@@ -357,7 +361,7 @@ function calculateReturnOnAsset(netIncome, totalAssets) {
   });
 
   addCagr(result);
-  result.Weightage = '10%';
+  result.Weightage = "10%";
 
   return result;
 }
@@ -378,7 +382,7 @@ function calculateLeverage(totalAssets, shareHolderEquity) {
   });
 
   addCagr(result);
-  result.Weightage = '10%';
+  result.Weightage = "10%";
 
   return result;
 }
@@ -402,7 +406,7 @@ function calculateReturnOnEquity(
   });
 
   addCagr(result);
-  result.Weightage = '5%';
+  result.Weightage = "5%";
 
   return result;
 }
@@ -487,7 +491,7 @@ function getLeverageEffect(totalAssets, netWorth) {
   return result;
 }
 
-function addCagr(ratio) {
+function addCagr(ratio, name = "", alt) {
   const keys = Object.keys(ratio);
   const years = keys.sort((a, b) => a - b);
 
@@ -495,10 +499,19 @@ function addCagr(ratio) {
   const firstYear = years.at(-1);
   const numberOfYears = years.length;
 
-  ratio.CAGR = `${+(
-    ((ratio[latestYear] / ratio[firstYear]) ** (1 / (numberOfYears - 1)) - 1) *
-    100
-  ).toFixed(3)}%`;
+  if (!!name) {
+    alt.CAGR = `${+(
+      ((ratio[latestYear] / ratio[firstYear]) ** (1 / (numberOfYears - 1)) -
+        1) *
+      100
+    ).toFixed(3)}%`;
+  } else {
+    ratio.CAGR = `${+(
+      ((ratio[latestYear] / ratio[firstYear]) ** (1 / (numberOfYears - 1)) -
+        1) *
+      100
+    ).toFixed(3)}%`;
+  }
 }
 
 function addGrowth(result) {
@@ -506,8 +519,8 @@ function addGrowth(result) {
   let Growth = 0;
   ratios.forEach((ratio) => {
     const { CAGR, Weightage } = result[ratio];
-    const CARG_Value = +CAGR.split('%')[0];
-    const Weightage_Value = +Weightage.split('%')[0];
+    const CARG_Value = +CAGR.split("%")[0];
+    const Weightage_Value = +Weightage.split("%")[0];
     if (!!CARG_Value && !!Weightage) {
       Growth += (CARG_Value / 100) * (Weightage_Value / 100);
     }
