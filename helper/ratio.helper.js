@@ -60,7 +60,7 @@ async function getCompanyRatios(symbol) {
     balanceSheetDate["Total Assets"]
   );
 
-  const eps = incomeStatementData["Basic EPS"];
+  const eps = Object.assign({}, incomeStatementData["Basic EPS"]);
   addCagr(eps);
   eps.Weightage = "10%";
 
@@ -74,7 +74,7 @@ async function getCompanyRatios(symbol) {
     balanceSheetDate["Stockholders Equity"]
   );
 
-  return {
+  const ratios = {
     "Production Efficiency": productEffeciency,
     "Operation Efficiency": oprationEffeciency,
     "Total Efficiency": totalEffeciency,
@@ -86,6 +86,20 @@ async function getCompanyRatios(symbol) {
     EPS: eps,
     Leverage: leverage,
     "Return On Equity (ROE)": returnOnEquity,
+  };
+
+  const balanceSheetRatios = { ...balanceSheetDate }._doc;
+  delete balanceSheetRatios.symbol;
+  delete balanceSheetRatios._id;
+
+  const incomStatementRatios = { ...incomeStatementData }._doc;
+  delete incomStatementRatios.symbol;
+  delete incomStatementRatios._id;
+
+  return {
+    ratios,
+    balanceSheetRatios,
+    incomStatementRatios,
   };
 }
 
