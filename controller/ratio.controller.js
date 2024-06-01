@@ -13,9 +13,14 @@ async function calculateRatios(req, res) {
       throw new Error("no company symbol found");
     }
 
-    const { ratios, balanceSheetRatios, incomStatementRatios } = await getCompanyRatios(
-      symbol
-    );
+    const {
+      ratios,
+      balanceSheetRatios,
+      incomStatementRatios,
+      DCF_data,
+      cashflowDataRatios,
+      basicInfoDataRatios,
+    } = await getCompanyRatios(symbol);
 
     // const sectorData = await getSectorRatios(symbol);
 
@@ -31,7 +36,9 @@ async function calculateRatios(req, res) {
         dupointData,
         balanceSheetRatios,
         incomStatementRatios,
-        // sectorData,
+        DCF_data,
+        cashflowDataRatios,
+        basicInfoDataRatios
       },
     });
   } catch (error) {

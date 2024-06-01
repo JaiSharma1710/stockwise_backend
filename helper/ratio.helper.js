@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const calculate_dcf = require("./dcf.helper");
 const schemaCommon = new mongoose.Schema({}, { strict: false });
 
 const incomStatement = mongoose.model(
@@ -12,13 +13,34 @@ const balanceSheet = mongoose.model(
   "balanceSheet_data"
 );
 
+const cashflow = mongoose.model("cashflow_data", schemaCommon, "cashflow_data");
+
+const betaValues = mongoose.model("beta_values", schemaCommon, "beta_values");
+
 const basicInfo = mongoose.model("basic_information");
 
 async function getCompanyRatios(symbol) {
-  const [incomeStatementData, balanceSheetDate] = await Promise.all([
+  const [
+    incomeStatementData,
+    balanceSheetDate,
+    cashflowData,
+    beta,
+    basicInfoData,
+  ] = await Promise.all([
     incomStatement.findOne({ symbol }),
     balanceSheet.findOne({ symbol }),
+    cashflow.findOne({ symbol }),
+    betaValues.findOne({ ticker: symbol }, { betas: 1, _id: 0 }),
+    basicInfo.findOne({ symbol }),
   ]);
+
+  const DCF_data = await calculate_dcf(
+    beta,
+    balanceSheetDate,
+    incomeStatementData,
+    symbol,
+    cashflowData
+  );
 
   const productEffeciency = calculateProductEffeciency(
     incomeStatementData["Operating Income"],
@@ -48,6 +70,11 @@ async function getCompanyRatios(symbol) {
   const inventoryTurnOverRatio = calculateInventoryTurnOverRatio(
     incomeStatementData["Total Revenue"],
     balanceSheetDate["Inventory"]
+  );
+
+  const workingCapitalTurnOverRatio = calculateWorkingCapitalTurnOverRatio(
+    incomeStatementData["Total Revenue"],
+    balanceSheetDate["Working Capital"]
   );
 
   const totalAssetTurnoverRatio = calculateTotalAssetTurnoverRatio(
@@ -80,6 +107,7 @@ async function getCompanyRatios(symbol) {
     "Total Efficiency": totalEffeciency,
     "Profitability Ratio": profitabilityRatio,
     "Fixed Asset Turnover Ratio": fixedAssetTurnoverRatio,
+    "Working Capital Turnover Ratio": workingCapitalTurnOverRatio,
     "Inventory Turnover Ratio": inventoryTurnOverRatio,
     "Total Asset Turnover Ratio": totalAssetTurnoverRatio,
     "Return on Asset": returnOnAsset,
@@ -96,10 +124,21 @@ async function getCompanyRatios(symbol) {
   delete incomStatementRatios.symbol;
   delete incomStatementRatios._id;
 
+  const cashflowDataRatios = { ...cashflowData }._doc;
+  delete cashflowDataRatios.symbol;
+  delete cashflowDataRatios._id;
+
+  const basicInfoDataRatios = { ...basicInfoData }._doc;
+  delete basicInfoDataRatios.symbol;
+  delete basicInfoDataRatios._id;
+
   return {
     ratios,
     balanceSheetRatios,
     incomStatementRatios,
+    DCF_data,
+    cashflowDataRatios,
+    basicInfoDataRatios,
   };
 }
 
@@ -331,6 +370,27 @@ function calculateInventoryTurnOverRatio(totalRevenue, inventory) {
       result[year] = 0;
     } else {
       result[year] = Number((totalRevenue[year] / inventory[year]).toFixed(3));
+    }
+  });
+
+  addCagr(result);
+  result.Weightage = "5%";
+
+  return result;
+}
+
+function calculateWorkingCapitalTurnOverRatio(totalRevenue, workingCapital) {
+  const keys = Object.keys(totalRevenue);
+
+  const result = {};
+
+  keys.forEach((year) => {
+    if (!totalRevenue?.[year] || !workingCapital?.[year]) {
+      result[year] = 0;
+    } else {
+      result[year] = Number(
+        (totalRevenue[year] / workingCapital[year]).toFixed(3)
+      );
     }
   });
 
