@@ -1,6 +1,8 @@
 const mongoose = require("mongoose");
 const calculate_dcf = require("./dcf.helper");
 const schemaCommon = new mongoose.Schema({}, { strict: false });
+const NSE = require("../utils/nse");
+const nse = new NSE();
 
 const incomStatement = mongoose.model(
   "incomeStatement_data",
@@ -33,6 +35,10 @@ async function getCompanyRatios(symbol) {
     betaValues.findOne({ ticker: symbol }, { betas: 1, _id: 0 }),
     basicInfo.findOne({ symbol }),
   ]);
+
+  const PE = await getPE(symbol, incomeStatementData["Basic EPS"]);
+  addCagr(PE);
+  PE.Weightage = "10%";
 
   const DCF_data = await calculate_dcf(
     beta,
@@ -114,6 +120,7 @@ async function getCompanyRatios(symbol) {
     EPS: eps,
     Leverage: leverage,
     "Return On Equity (ROE)": returnOnEquity,
+    "Price To Equity (PE)": PE
   };
 
   const balanceSheetRatios = { ...balanceSheetDate }._doc;
@@ -592,14 +599,73 @@ function addGrowth(result) {
   const ratios = Object.keys(result);
   let Growth = 0;
   ratios.forEach((ratio) => {
-    const { CAGR, Weightage } = result[ratio];
-    const CARG_Value = +CAGR.split("%")[0];
-    const Weightage_Value = +Weightage.split("%")[0];
+    const { CAGR, Weightage } = result[ratio] || {};
+    const CARG_Value = +CAGR?.split("%")[0];
+    const Weightage_Value = +Weightage?.split("%")[0];
     if (!!CARG_Value && !!Weightage) {
       Growth += (CARG_Value / 100) * (Weightage_Value / 100);
     }
   });
   return Growth * 100;
+}
+
+async function getPE(symbol, eps) {
+  const [sy, _] = symbol.split(".");
+
+  const range_2024 = {
+    start: new Date("2024-03-28"),
+    end: new Date("2024-03-28"),
+  };
+
+  const range_2023 = {
+    start: new Date("2023-03-28"),
+    end: new Date("2023-03-28"),
+  };
+
+  const range_2022 = {
+    start: new Date("2022-03-28"),
+    end: new Date("2022-03-28"),
+  };
+
+  const range_2021 = {
+    start: new Date("2021-03-31"),
+    end: new Date("2021-03-31"),
+  };
+
+  const [
+    [{ data: data_2024 }],
+    [{ data: data_2023 }],
+    [{ data: data_2022 }],
+    [{ data: data_2021 }],
+  ] = await Promise.all([
+    nse.getEquityHistoricalData(sy, range_2024),
+    nse.getEquityHistoricalData(sy, range_2023),
+    nse.getEquityHistoricalData(sy, range_2022),
+    nse.getEquityHistoricalData(sy, range_2021),
+  ]);
+
+  const price_2024 = data_2024?.data?.[0]?.CH_CLOSING_PRICE;
+  const price_2023 = data_2023?.data?.[0]?.CH_CLOSING_PRICE;
+  const price_2022 = data_2022?.data?.[0]?.CH_CLOSING_PRICE;
+  const price_2021 = data_2021?.data?.[0]?.CH_CLOSING_PRICE;
+
+  const PE = {};
+
+  const keys = Object.keys(eps);
+
+  keys.forEach((year) => {
+    if (year.includes("2024")) {
+      PE[year] = +(price_2024 / eps[year])?.toFixed(2);
+    } else if (year.includes("2023")) {
+      PE[year] = +(price_2023 / eps[year])?.toFixed(2);
+    } else if (year.includes("2022")) {
+      PE[year] = +(price_2022 / eps[year])?.toFixed(2);
+    } else if (year.includes("2021")) {
+      PE[year] = +(price_2021 / eps[year])?.toFixed(2);
+    }
+  });
+
+  return PE;
 }
 
 module.exports = {

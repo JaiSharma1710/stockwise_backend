@@ -1,5 +1,8 @@
 const axios = require("axios");
 const UserAgent = require("user-agents");
+const moment = require('moment');
+const { extendMoment } = require('moment-range');
+const momentRange = extendMoment(moment);
 
 class NSE {
   baseUrl = "https://www.nseindia.com";
@@ -84,6 +87,55 @@ class NSE {
     const identifier = data.info.identifier;
     let url = `${this.baseUrl}/api/chart-databyindex?index=${identifier}`;
     return this.getData(url);
+  }
+
+  async getDataByEndpoint(apiEndpoint) {
+    return this.getData(`${this.baseUrl}${apiEndpoint}`);
+  }
+
+  getEquityDetails(symbol) {
+    return this.getDataByEndpoint(
+      `/api/quote-equity?symbol=${encodeURIComponent(symbol.toUpperCase())}`
+    );
+  }
+
+  getDateRangeChunks(startDate, endDate, chunkInDays) {
+    const range = momentRange.range(startDate, endDate);
+    const chunks = Array.from(range.by("days", { step: chunkInDays }));
+    const dateRanges = [];
+    for (let i = 0; i < chunks.length; i++) {
+      dateRanges.push({
+        start:
+          i > 0
+            ? chunks[i].add(1, "day").format("DD-MM-YYYY")
+            : chunks[i].format("DD-MM-YYYY"),
+        end: chunks[i + 1]
+          ? chunks[i + 1].format("DD-MM-YYYY")
+          : range.end.format("DD-MM-YYYY"),
+      });
+    }
+    return dateRanges;
+  }
+
+  async getEquityHistoricalData(symbol, range) {
+    const { data } = await this.getEquityDetails(symbol.toUpperCase());
+    const activeSeries = data.info.activeSeries.length
+      ? data.info.activeSeries[0]
+      : /* istanbul ignore next */ "EQ";
+    if (!range) {
+      range = { start: new Date(data.metadata.listingDate), end: new Date() };
+    }
+    const dateRanges = this.getDateRangeChunks(range.start, range.end, 66);
+    const promises = dateRanges.map(async (dateRange) => {
+      const url =
+        `/api/historical/cm/equity?symbol=${encodeURIComponent(
+          symbol.toUpperCase()
+        )}` +
+        `&series=[%22${activeSeries}%22]&from=${dateRange.start}&to=${dateRange.end}`;
+
+      return this.getDataByEndpoint(url);
+    });
+    return Promise.all(promises);
   }
 }
 
