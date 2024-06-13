@@ -487,7 +487,7 @@ function calculateReturnOnEquity(
   });
 
   addCagr(result);
-  result.Weightage = "5%";
+  result.Weightage = "10%";
 
   return result;
 }
