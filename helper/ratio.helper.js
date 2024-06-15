@@ -120,7 +120,7 @@ async function getCompanyRatios(symbol) {
     EPS: eps,
     Leverage: leverage,
     "Return On Equity (ROE)": returnOnEquity,
-    "Price To Equity (PE)": PE
+    "Price To Equity (PE)": PE,
   };
 
   const balanceSheetRatios = { ...balanceSheetDate }._doc;
@@ -261,45 +261,65 @@ async function getDupointData(symbol) {
 }
 
 function calculateProductEffeciency(operatingIncome, totalRevenue) {
-  const keys = Object.keys(operatingIncome);
+  try {
+    const keys = Object.keys(operatingIncome);
 
-  const result = {};
+    const result = {};
 
-  keys.forEach((year) => {
-    if (!operatingIncome?.[year] || !totalRevenue?.[year]) {
-      result[year] = 0;
-    } else {
-      result[year] = Number(
-        (operatingIncome[year] / totalRevenue[year]).toFixed(3)
-      );
-    }
-  });
+    keys.forEach((year) => {
+      if (!operatingIncome?.[year] || !totalRevenue?.[year]) {
+        result[year] = 0;
+      } else {
+        result[year] = Number(
+          (operatingIncome[year] / totalRevenue[year]).toFixed(3)
+        );
+      }
+    });
 
-  addCagr(result);
-  result.Weightage = "5%";
+    addCagr(result);
+    result.Weightage = "5%";
 
-  return result;
+    return result;
+  } catch (err) {
+    return {
+      "2023-03-31T00:00:00+00:00": NaN,
+      "2022-03-31T00:00:00+00:00": NaN,
+      "2021-03-31T00:00:00+00:00": NaN,
+      CAGR: "NAN %",
+      Weightage: "5%",
+    };
+  }
 }
 
 function calculateOprationEffeciency(pretaxIncome, operatingIncome) {
-  const keys = Object.keys(operatingIncome);
+  try {
+    const keys = Object.keys(operatingIncome);
 
-  const result = {};
+    const result = {};
 
-  keys.forEach((year) => {
-    if (!pretaxIncome?.[year] || !operatingIncome?.[year]) {
-      result[year] = 0;
-    } else {
-      result[year] = Number(
-        (pretaxIncome[year] / operatingIncome[year]).toFixed(3)
-      );
-    }
-  });
+    keys.forEach((year) => {
+      if (!pretaxIncome?.[year] || !operatingIncome?.[year]) {
+        result[year] = 0;
+      } else {
+        result[year] = Number(
+          (pretaxIncome[year] / operatingIncome[year]).toFixed(3)
+        );
+      }
+    });
 
-  addCagr(result);
-  result.Weightage = "5%";
+    addCagr(result);
+    result.Weightage = "5%";
 
-  return result;
+    return result;
+  } catch (err) {
+    return {
+      "2023-03-31T00:00:00+00:00": NaN,
+      "2022-03-31T00:00:00+00:00": NaN,
+      "2021-03-31T00:00:00+00:00": NaN,
+      CAGR: "NAN %",
+      Weightage: "5%",
+    };
+  }
 }
 
 function calculateTotalEffeciency(productEffeciency, oprationEffeciency) {
@@ -525,19 +545,27 @@ function getInterestEffect(pbt, ebit) {
 }
 
 function getProfitabilityEffect(ebit, netSales) {
-  const keys = Object.keys(ebit);
+  try {
+    const keys = Object.keys(ebit);
 
-  const result = {};
+    const result = {};
 
-  keys.forEach((year) => {
-    if (!ebit?.[year] || !netSales?.[year]) {
-      result[year] = 0;
-    } else {
-      result[year] = Number((ebit[year] / netSales[year]).toFixed(3));
-    }
-  });
+    keys.forEach((year) => {
+      if (!ebit?.[year] || !netSales?.[year]) {
+        result[year] = 0;
+      } else {
+        result[year] = Number((ebit[year] / netSales[year]).toFixed(3));
+      }
+    });
 
-  return result;
+    return result;
+  } catch (error) {
+    return {
+      "2023-03-31T00:00:00+00:00": NaN,
+      "2022-03-31T00:00:00+00:00": NaN,
+      "2021-03-31T00:00:00+00:00": NaN,
+    };
+  }
 }
 
 function getAssetEffect(netSales, totalAssets) {

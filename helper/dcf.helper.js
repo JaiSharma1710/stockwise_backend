@@ -205,8 +205,12 @@ function getLatestPrice(obj) {
 }
 
 function calculateDiff(obj) {
-  const years = Object.keys(obj);
-  return obj[years[0]] - obj[years[1]];
+  try {
+    const years = Object.keys(obj);
+    return obj[years[0]] - obj[years[1]];
+  } catch (error) {
+    return 0;
+  }
 }
 
 function calculateTax(incomStatement) {
