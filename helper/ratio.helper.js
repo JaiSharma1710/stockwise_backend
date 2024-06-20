@@ -15,6 +15,8 @@ const balanceSheet = mongoose.model(
   "balanceSheet_data"
 );
 
+const DFC = mongoose.model("dcf_data", schemaCommon, "dcf_data");
+
 const cashflow = mongoose.model("cashflow_data", schemaCommon, "cashflow_data");
 
 const betaValues = mongoose.model("beta_values", schemaCommon, "beta_values");
@@ -22,18 +24,22 @@ const betaValues = mongoose.model("beta_values", schemaCommon, "beta_values");
 const basicInfo = mongoose.model("basic_information");
 
 async function getCompanyRatios(symbol) {
+  const [company, exchange] = symbol.split(".");
+
   const [
     incomeStatementData,
     balanceSheetDate,
     cashflowData,
     beta,
     basicInfoData,
+    dcfData,
   ] = await Promise.all([
     incomStatement.findOne({ symbol }),
     balanceSheet.findOne({ symbol }),
     cashflow.findOne({ symbol }),
     betaValues.findOne({ ticker: symbol }, { betas: 1, _id: 0 }),
     basicInfo.findOne({ symbol }),
+    DFC.findOne({ Symbol: company }, { _id: 0 }),
   ]);
 
   const PE = await getPE(symbol, incomeStatementData["Basic EPS"]);
@@ -143,9 +149,9 @@ async function getCompanyRatios(symbol) {
     ratios,
     balanceSheetRatios,
     incomStatementRatios,
-    DCF_data,
     cashflowDataRatios,
     basicInfoDataRatios,
+    dcfData,
   };
 }
 

@@ -1,6 +1,5 @@
 const {
   getCompanyRatios,
-  getSectorRatios,
   addGrowth,
   getDupointData,
 } = require("../helper/ratio.helper");
@@ -17,12 +16,10 @@ async function calculateRatios(req, res) {
       ratios,
       balanceSheetRatios,
       incomStatementRatios,
-      DCF_data,
       cashflowDataRatios,
       basicInfoDataRatios,
+      dcfData,
     } = await getCompanyRatios(symbol);
-
-    // const sectorData = await getSectorRatios(symbol);
 
     const growth = addGrowth(ratios);
 
@@ -36,9 +33,9 @@ async function calculateRatios(req, res) {
         dupointData,
         balanceSheetRatios,
         incomStatementRatios,
-        DCF_data,
         cashflowDataRatios,
-        basicInfoDataRatios
+        basicInfoDataRatios,
+        dcfData,
       },
     });
   } catch (error) {
